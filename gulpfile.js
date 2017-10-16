@@ -4,7 +4,8 @@ var gulp = require("gulp"),
  browserify = require('browserify'),
  watchify = require('watchify'),
  babelify = require('babelify'),
- path = require('path');
+ path = require('path'),
+ fs = require('fs');
 
 gulp.task("scripts:server", () => {
   return gulp.src("./src-server/**/*.js")
@@ -22,10 +23,10 @@ gulp.task("watch:scripts:server", gulp.series(
 );
 
 //task for watching all clientside files for changes and rebundles them to a new output
-gulp.task("watch:scripts:server", () => {
+gulp.task("watch:scripts:client", () => {
   const files = fs.readdirSync("./src-client");
-  for (let i = 0; i < files.length, i++) {
-    const files = files[i];
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
     if (path.extname(file) !== ".js")
       continue;
     // looks in out client folder finds all files and inits a watch on all files
@@ -36,6 +37,11 @@ gulp.task("watch:scripts:server", () => {
     .on("change", initBundlerWatch)
 });
 
+gulp.task("watch:scripts", gulp.parallel(
+  "watch:scripts:client",
+   "watch:scripts:server"
+));
+
 let bundlers = {};
 
 function initBundlerWatch(file) {
@@ -43,6 +49,8 @@ function initBundlerWatch(file) {
     return;
 
   const bundler = createBundler(file);  //createBundler comes from browserify
+  bundlers[file] = bundler;
+
   const watcher = watchify(bundler);
   const filename = path.basename(file); // returns the filename of an absolute file reference
 
@@ -56,7 +64,7 @@ function initBundlerWatch(file) {
   }
   //before bundling we need to hook into the watchify events
   // watchify initiates a new bundle
-  watcher.on('update', () = bundle());
+  watcher.on('update', () => bundle());
   watcher.on('time', time => console.log(`Built clien in ${time} ms`));
 
   bundle();
