@@ -1,3 +1,4 @@
 import moment from 'moment';
-console.error('error');
-console.log(moment().format());
+import $ from 'jquery';
+
+$("body").text(moment().format());
